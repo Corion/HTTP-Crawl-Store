@@ -302,5 +302,24 @@ SQL
 
 }
 
+=head2 C<< $store->purge_bodies >>
+
+    $store->purge_bodies
+
+Removes all message bodies that are not referenced anymore.
+
+If you periodically prune old responses, you can't immediately prune the
+bodies too, as these might be referenced by other responses. This method
+purges all bodies that are not referenced anymore.
+
+=cut
+
+sub purge_bodies($self) {
+    $self->dbh->do(<<'SQL');
+        delete from http_body b
+                    left join response r
+        where r.method is null
+SQL
+}
 
 1;
