@@ -129,7 +129,7 @@ sub _store($self, $res) {
             ($response->{"header_$h"}) = map { my $hn = $response->{headers}->[$_*2]; (defined $hn and $hn =~ /^$hname$/i) ? $response->{headers}->[$_*2+1] : () } 0..(@{ $response->{headers} }/2);
         };
         $response->{headers_all} = encode_json($response->{headers});
-use Data::Dumper; warn Dumper $response;        
+
         push @$responses, $response;
         # gunzip stuff/remote TE
         push @$bodies, { digest => $digest, content => $response->{content} };
