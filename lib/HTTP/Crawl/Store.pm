@@ -148,6 +148,7 @@ sub http_response_to_response( $self, $response ) {
         port    => $uri->port,
         scheme  => $uri->scheme,
         url     => $uri->as_string,
+        path    => $uri->path,
         status  => $response->code,
         message => $response->message,
         headers => [$response->headers->flatten],
@@ -187,6 +188,7 @@ sub flush( $self ) {
       , scheme                        varchar(6) not null
       , host                          varchar(128) not null
       , port                          decimal(5,0)
+      , path                          varchar(1024) not null
       , url                           varchar(2048) not null
       , status                        decimal(3,0)
       , message                       varchar(80)
@@ -224,6 +226,7 @@ SQL
         ,scheme
         ,host
         ,port
+        ,path
         ,url
         ,status
         ,message
@@ -249,6 +252,7 @@ SQL
         ,scheme
         ,host
         ,port
+        ,path
         ,url
         ,status
         ,message

@@ -4,6 +4,7 @@ create table response (
     scheme                        varchar(6) not null,
     host                          varchar(128) not null,
     port                          decimal(5,0),
+    path                          varchar(1024) not null,
     url                           varchar(2048) not null,
     status                        decimal(3,0),
     message                       varchar(80),

@@ -1,6 +1,6 @@
 #!perl
 use strict;
-use Test::More tests => 5;
+use Test::More tests => 6;
 
 use HTTP::Crawl::Store;
 use URI;
@@ -12,7 +12,7 @@ my $s = HTTP::Crawl::Store->new(
 $s->create();
 $s->connect();
 
-my $u = URI->new('https://example.com');
+my $u = URI->new('https://example.com/example1');
 use Scalar::Util 'reftype';
 
 $s->store(
@@ -60,5 +60,6 @@ is 0+@$crawl, 1, "We can retrieve the request with the body";
 
 is $r_digest, $h_digest, "The digests match";
 is $crawl->[0]->{header_content_type}, 'text/html', "We store/retrieve the content type";
+is $crawl->[0]->{path}, '/example1', "We store/retrieve the path";
 
 done_testing();
