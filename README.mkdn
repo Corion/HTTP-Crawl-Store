@@ -1,0 +1,23 @@
+
+[![Travis Build Status](https://travis-ci.org/Corion/HTTP-Crawl-Store.svg?branch=master)](https://travis-ci.org/Corion/HTTP-Crawl-Store)
+[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/Corion/HTTP-Crawl-Store?branch=master&svg=true)](https://ci.appveyor.com/project/Corion/HTTP-Crawl-Store)
+
+# NAME
+
+HTTP::Crawl::Store - store HTTP crawl results for later consumption
+
+# SYNOPSIS
+
+    my $s = HTTP::Crawl::Store->new(
+        dsn => 'dbi:SQLite:dbname=:memory:',
+    );
+
+    $s->create();
+    $s->connect();
+    
+    my $response = $mech->get('https://example.com/');
+
+    # We dispatch on ref($response)
+    $s->store($response);
+
+    $s->flush();
