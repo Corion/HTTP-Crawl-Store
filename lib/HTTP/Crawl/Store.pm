@@ -30,7 +30,7 @@ HTTP::Crawl::Store - store HTTP crawl results for later consumption
 
     $s->create();
     $s->connect();
-    
+
     my $response = $mech->get('https://example.com/');
 
     # We dispatch on ref($response)
@@ -285,7 +285,22 @@ SQL
 
 }
 
-#sub retrieve() {
-#}
+sub retrieve_http_request($self,$request) {
+    $self->retrieve_url( $request->method, $request->url );
+}
+
+sub retrieve_url($self,$method, $url) {
+    $self->dbh->selectall_arrayref(<<'SQL', {Slice => {}}, $method, $url)->[0];
+        select
+        *
+        from response r
+        join http_body b on r.response_digest = b.digest
+        where method = ?
+          and url    = ?
+        order by retrieved desc limit 1
+SQL
+
+}
+
 
 1;

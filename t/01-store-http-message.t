@@ -1,6 +1,6 @@
 #!perl
 use strict;
-use Test::More tests => 6;
+use Test::More tests => 8;
 
 use HTTP::Crawl::Store;
 use URI;
@@ -61,5 +61,9 @@ is $r_digest, $h_digest, "The digests match";
 
 is $crawl->[0]->{header_content_type}, 'text/html', "We store/retrieve the content type";
 is $crawl->[0]->{path}, '/example-http-request', "We store/retrieve the path";
+
+my $res = $s->retrieve_http_request( $req );
+is $res->{header_content_type}, 'text/html', "We store/retrieve the content type";
+is $res->{path}, '/example-http-request', "We store/retrieve the path";
 
 done_testing();
