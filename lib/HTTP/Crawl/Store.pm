@@ -38,6 +38,8 @@ HTTP::Crawl::Store - store HTTP crawl results for later consumption
 
     $s->flush();
 
+    my $response = $s->retrieve_url(GET => 'https://example.com/');
+
 =cut
 
 # Global variables are used to communicate with SQLite
