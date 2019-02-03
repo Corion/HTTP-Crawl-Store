@@ -291,7 +291,8 @@ sub retrieve_http_request($self,$request) {
     $self->retrieve_url( $request->method, $request->url );
 }
 
-sub retrieve_url($self,$method, $url) {
+sub retrieve_url($self,$method, $url, %options) {
+    # Later, add options to retrieve other versions of the page
     $self->dbh->selectall_arrayref(<<'SQL', {Slice => {}}, $method, $url)->[0];
         select
         *
