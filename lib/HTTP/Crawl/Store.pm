@@ -302,12 +302,11 @@ sub retrieve_url($self,$method, $url, %options) {
           and url    = ?
         order by retrieved desc limit 1
 SQL
-
 }
 
 =head2 C<< $store->purge_bodies >>
 
-    $store->purge_bodies
+    $store->purge_bodies();
 
 Removes all message bodies that are not referenced anymore.
 
