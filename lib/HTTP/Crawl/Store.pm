@@ -277,14 +277,13 @@ SQL
           from temp.perl_response
 SQL
     $self->dbh->do(<<'SQL');
-        insert into http_body
+        insert or replace into http_body
             (digest, content)
         select
             digest
           , content
         from temp.perl_http_body
 SQL
-
 }
 
 sub retrieve_http_request($self,$request) {

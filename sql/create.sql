@@ -27,7 +27,7 @@ create table response (
 );
 
 create table http_body (
-    digest varchar(32) not null
+    digest varchar(32) unique not null
   , content blob
 );
 
