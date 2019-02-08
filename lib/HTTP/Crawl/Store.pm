@@ -15,6 +15,7 @@ use Path::Class;
 use Digest;
 use Digest::SHA;
 use POSIX 'strftime';
+use DBI ':sql_types';
 
 our $VERSION = '0.01';
 
@@ -398,15 +399,17 @@ sub purge_distinct_responses($self,%options) {
         , to_delete as (
             select response_digest
               from response_rank
-             where pos > 3
+             where pos > :pos
         )
         delete
         from response
         where
-              host like ?
+              host like :host
           and response_digest in (select distinct response_digest from to_delete)
 SQL
-    $sth->execute($options{host});
+    $sth->bind_param(':pos', $cutoff, SQL_INTEGER);
+    $sth->bind_param(':host', $options{host}, SQL_VARCHAR);
+    $sth->execute();
 }
 
 =head2 C<< $store->purge_bodies >>
