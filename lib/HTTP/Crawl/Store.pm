@@ -328,13 +328,13 @@ sub purge_responses($self,%options) {
     $options{ host } ||= '%';
     my $cutoff = exists $options{ keep_newest } ? $options{ keep_newest } : 20;
     # Later, add options to retrieve other versions of the page
-    $self->dbh->do(<<'SQL', $options{host}, $cutoff)->[0];
+    $self->dbh->do(<<'SQL', {}, $options{host}, $cutoff)->[0];
         with old_responses as (
-          select 
+          select
                  url
                , retrieved
                , rank over (partition by url order by retrieved desc) as pos
-            from responses
+            from response
           where 1=1
             and host LIKE ?
         )
@@ -346,9 +346,9 @@ sub purge_responses($self,%options) {
 SQL
 }
 
-=head2 C<< $store->purge_different_responses %options >>
+=head2 C<< $store->purge_distinct_responses %options >>
 
-    $store->purge_different_responses( keep_newest => 20, host => 'amazon.de' );
+    $store->purge_distinct_responses( keep_newest => 20, host => 'amazon.de' );
 
 Removes all "old" responses according to the criteria in C<%options>. Responses
 with identical bodies are kept.
@@ -368,32 +368,45 @@ Keep the newest I<n> responses
 
 =cut
 
-sub purge_responses($self,%options) {
+sub purge_distinct_responses($self,%options) {
     $options{ host } ||= '%';
     my $cutoff = exists $options{ keep_newest } ? $options{ keep_newest } : 20;
     # Later, add options to retrieve other versions of the page
-    $self->dbh->do(<<'SQL', $options{host}, $cutoff)->[0];
-        with old_responses as (
-          select 
-                 url
-               , body_id
-               , max(retrieved) (partition by host, body_id) as last_retrieved
-            from responses
-          where 1=1
-            and host LIKE ?
+    my $sth = $self->dbh->prepare(<<'SQL');
+        with freshest_content as (
+          select
+                 response_digest
+               , max(retrieved) as last_retrieved
+            from response
+           group by response_digest
         )
-        with old_responses_by_body as (
-          select 
-                 url
-               , rank() over (partition by host order by last_retrieved desc) as pos
+        , old_responses as (
+          select
+                 f.response_digest
+               , dense_rank() over (partition by url order by last_retrieved desc) as pos
+               , last_retrieved
+            from freshest_content f join response r on (f.response_digest=r.response_digest)
+        )
+        , response_rank as (
+          select
+                 response_digest
+               , min(pos) as pos
+               , last_retrieved
             from old_responses
+        group by response_digest
+        )
+        , to_delete as (
+            select response_digest
+              from response_rank
+             where pos > 3
         )
         delete
-        from response r
-            join old_responses o
-            on r.url = o.url and r.retrieved = r.retrieved
-        where pos > ?
+        from response
+        where
+              host like ?
+          and response_digest in (select distinct response_digest from to_delete)
 SQL
+    $sth->execute($options{host});
 }
 
 =head2 C<< $store->purge_bodies >>
@@ -410,9 +423,9 @@ purges all bodies that are not referenced anymore.
 
 sub purge_bodies($self) {
     $self->dbh->do(<<'SQL');
-        delete from http_body b
-                    left join response r
-        where r.method is null
+        delete
+          from http_body
+         where digest not in (select distinct response_digest from response)
 SQL
 }
 
