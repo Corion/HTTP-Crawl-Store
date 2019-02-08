@@ -304,6 +304,99 @@ sub retrieve_url($self,$method, $url, %options) {
 SQL
 }
 
+=head2 C<< $store->purge_responses %options >>
+
+    $store->purge_responses( keep_newest => 20, host => 'amazon.de' );
+
+Removes all "old" responses according to the criteria in C<%options>.
+
+=over 4
+
+=item B<host>
+
+Filter on the hostname of the response. The value will be used for
+an SQL C<LIKE> match.
+
+=item B<keep_newest>
+
+Keep the newest I<n> responses
+
+=back
+
+=cut
+
+sub purge_responses($self,%options) {
+    $options{ host } ||= '%';
+    my $cutoff = exists $options{ keep_newest } ? $options{ keep_newest } : 20;
+    # Later, add options to retrieve other versions of the page
+    $self->dbh->do(<<'SQL', $options{host}, $cutoff)->[0];
+        with old_responses as (
+          select 
+                 url
+               , retrieved
+               , rank over (partition by url order by retrieved desc) as pos
+            from responses
+          where 1=1
+            and host LIKE ?
+        )
+        delete
+        from response r
+            join old_responses o
+            on r.url = o.url and r.retrieved = r.retrieved
+        where pos > ?
+SQL
+}
+
+=head2 C<< $store->purge_different_responses %options >>
+
+    $store->purge_different_responses( keep_newest => 20, host => 'amazon.de' );
+
+Removes all "old" responses according to the criteria in C<%options>. Responses
+with identical bodies are kept.
+
+=over 4
+
+=item B<host>
+
+Filter on the hostname of the response. The value will be used for
+an SQL C<LIKE> match.
+
+=item B<keep_newest>
+
+Keep the newest I<n> responses
+
+=back
+
+=cut
+
+sub purge_responses($self,%options) {
+    $options{ host } ||= '%';
+    my $cutoff = exists $options{ keep_newest } ? $options{ keep_newest } : 20;
+    # Later, add options to retrieve other versions of the page
+    $self->dbh->do(<<'SQL', $options{host}, $cutoff)->[0];
+        with old_responses as (
+          select 
+                 url
+               , body_id
+               , max(retrieved) (partition by host, body_id) as last_retrieved
+            from responses
+          where 1=1
+            and host LIKE ?
+        )
+        with old_responses_by_body as (
+          select 
+                 url
+               , rank() over (partition by host order by last_retrieved desc) as pos
+            from old_responses
+        )
+        delete
+        from response r
+            join old_responses o
+            on r.url = o.url and r.retrieved = r.retrieved
+        where pos > ?
+SQL
+}
+
 =head2 C<< $store->purge_bodies >>
 
     $store->purge_bodies();
