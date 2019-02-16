@@ -14,10 +14,53 @@ HTTP::Crawl::Store - store HTTP crawl results for later consumption
 
     $s->create();
     $s->connect();
-    
+
     my $response = $mech->get('https://example.com/');
 
     # We dispatch on ref($response)
     $s->store($response);
 
     $s->flush();
+
+    my $response = $s->retrieve_url(GET => 'https://example.com/');
+
+## `$store->purge_responses %options`
+
+    $store->purge_responses( keep_newest => 20, host => 'amazon.de' );
+
+Removes all "old" responses according to the criteria in `%options`.
+
+- **host**
+
+    Filter on the hostname of the response. The value will be used for
+    an SQL `LIKE` match.
+
+- **keep\_newest**
+
+    Keep the newest _n_ responses
+
+## `$store->purge_distinct_responses %options`
+
+    $store->purge_distinct_responses( keep_newest => 20, host => 'amazon.de' );
+
+Removes all "old" responses according to the criteria in `%options`. Responses
+with identical bodies are kept.
+
+- **host**
+
+    Filter on the hostname of the response. The value will be used for
+    an SQL `LIKE` match.
+
+- **keep\_newest**
+
+    Keep the newest _n_ responses
+
+## `$store->purge_bodies`
+
+    $store->purge_bodies();
+
+Removes all message bodies that are not referenced anymore.
+
+If you periodically prune old responses, you can't immediately prune the
+bodies too, as these might be referenced by other responses. This method
+purges all bodies that are not referenced anymore.
