@@ -114,8 +114,9 @@ sub _store($self, $res) {
     my $bodies = $self->bodies;
     for my $response (@$res) {
         my $digest = $self->digest->clone;
-        $digest->add($response->{body})
-            if exists $response->{body};
+        # ->decoded_content ?!
+        $digest->add($response->{content})
+            if exists $response->{content};
         $digest = $digest->digest;
         $response->{response_digest} = $digest;
 
