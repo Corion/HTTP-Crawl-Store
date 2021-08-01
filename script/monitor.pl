@@ -69,6 +69,9 @@ app->minion->add_task(fetch_url => sub {
             headers => [%{ $res->headers->to_hash }],
             content => $res->body,
         };
+        # We should also store the title (?)
+        (my $title) = ($data->{content} =~ m!<title>(.*?)</title>!i);
+        say "Storing '$title', $data->{status}";
         $store->store(
             $data,
         );
