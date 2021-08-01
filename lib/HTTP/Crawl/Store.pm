@@ -156,6 +156,7 @@ sub http_response_to_response( $self, $response ) {
         message => $response->message,
         headers => [$response->headers->flatten],
         content => $response->content, # charset-encoded, utf-8 and mojibake get stored as blob
+        # but shouldn't we store the ->decoded_content, to get rid of chunked/gzip/whatever?
     }
 }
 
