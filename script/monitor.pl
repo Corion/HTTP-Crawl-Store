@@ -5,18 +5,39 @@ use Minion::Backend::SQLite;
 use Mojo::UserAgent;
 
 use Mojolicious::Lite;
-plugin 'Minion' => { SQLite => 'sqlite:db/crawler.db' };
+plugin 'Minion' => { SQLite => 'sqlite:db/crawler.sqlite' };
 plugin 'Minion::Admin';
 
 # Connect to backend
 #my $minion = Minion->new(SQLite => 'sqlite:db/crawler.sqlite');
+
+# has 'store', in some "app" class...
 my $store = HTTP::Crawl::Store->new(
-    dsn => 'dbi:SQLite:dbname=db/store.sqlite',
+    dsn => 'dbi:SQLite:dbname=db/crawler.sqlite',
 );
 
-if( $ARGV[0] eq '--create' ) {
-    $store->create();
-};
+{
+    package MyApp::Command::create;
+    use Mojo::Base 'Mojolicious::Command';
+
+    use Mojo::Util 'getopt';
+
+    has 'description' => 'Create the HTTP crawl schema';
+    has 'usage' => <<"USAGE";
+    $0 create
+USAGE
+
+    sub run {
+        my ($self, @args) = @_;
+
+        my $app = $self->app;
+        my $store = $app->store;
+        $store->create();
+        exit
+    }
+
+    1;
+}
 
 $store->connect();
 
