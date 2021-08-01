@@ -119,8 +119,7 @@ sub _store($self, $res) {
             if exists $response->{content};
         $digest = $digest->digest;
         $response->{response_digest} = $digest;
-
-        $response->{retrieved} ||= strftime '%Y-%m-%d %H:%M:%S', localtime;
+        $response->{retrieved} ||= strftime '%Y-%m-%d %H:%M:%SZ', gmtime;
 
         # Upmunge some of the headers
         for my $h (qw(content_type
