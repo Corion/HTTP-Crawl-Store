@@ -72,6 +72,7 @@ app->minion->add_task(fetch_url => sub {
         $store->store(
             $data,
         );
+        $store->flush();
     })->catch(sub {
         warn "[[$@]]";
         warn shift;
