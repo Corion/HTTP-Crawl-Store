@@ -1,11 +1,36 @@
 ---
 - url: "https://geizhals.de/intel-core-i9-9900k-v23221.html"
   update: 14400
+  scrape:
+      - price: .gh_price
+        title: title
 - url: "https://geizhals.de/canon-eos-r5-gehaeuse-4147c004-a2327501.html?t=v&hloc=at&hloc=de&va=b"
   update: 14400
+  scrape:
+      - price: "#offer__price-0 > .gh_price"
+        title: title
 - url: "https://geizhals.de/canon-eos-r6-gehaeuse-4082c003-a2327553.html?t=v&hloc=at&hloc=de&va=b"
   update: 14400
+  scrape:
+      - price: "#offer__price-0 > .gh_price"
+        title: title
 - url: "https://geizhals.de/blackmagic-design-atem-mini-bmd-swatemmini-a2267359.html?t=v&hloc=at&hloc=de&va=b"
   update: 14400
+  scrape:
+      - price: "#offer__price-0 > .gh_price"
+        title: title
 - url: "https://geizhals.de/?in=&fs=rtx%203080ti"
   update: 14400
+  scrape:
+      - price: "#offer__price-0 > .gh_price"
+        title: title
+- url: "https://www.amazon.de/dp/B08BR4CGJ6/ref=cm_sw_em_r_mt_dp_4K28T4BQVVR8JR86ENRJ?_encoding=UTF8&psc=1"
+  update: 14400
+  scrape:
+      - price: "#priceblock_ourprice"
+        title: "//title"
+- url: "https://www.amazon.de/dp/B07S3WMKYT/ref=cm_sw_em_r_mt_dp_EH1BZAM33C01S970ZNXT?_encoding=UTF8&psc=1"
+  update: 14400
+  scrape:
+      - price: "#priceblock_ourprice"
+        title: "//title[0]"
