@@ -72,7 +72,7 @@ $format ||= 'csv';
 
 # make_uri can be a comma-separated list of columns to map
 # The index starts at one
-my %make_uri = map{ $_-1 => 1 } map{ split /,/ } @make_uri;
+my %make_uri = map{ $_-1 => 1 } map{ split /\s*,\s*/ } @make_uri;
 $sep ||= "\t";
 
 # Now determine where we get the HTML to scrape from:
