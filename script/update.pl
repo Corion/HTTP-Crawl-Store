@@ -47,7 +47,7 @@ for my $task (@$urls) {
         if( $fetch ) {
             say "Updating $t->{url} ( $next_fetch_ts )";
         } else {
-            say "$t->{url} is new enough, updating after $next_fetch_ts";
+            say "$t->{url} is new enough";
         }
 
     } else {
