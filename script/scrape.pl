@@ -102,7 +102,6 @@ $store->connect();
 for my $url ( @urls ) {
     # We assume that the URLs are in the store already, instead of
     # optionally (re)fetching them if they are "too old"
-    say "Unstoring '$url'";
     my $res = $store->retrieve_url( GET => $url );
     my $html = $res->{content};
 
