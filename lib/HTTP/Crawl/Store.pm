@@ -179,7 +179,7 @@ sub store_mojo_tx( $self, @responses ) {
 sub store_http_response( $self, @responses ) {
     for my $res ( @responses ) {
         my $r = $self->http_response_to_response( $res );
-        $self->_store( $r );
+        $self->_store([ $r ]);
     }
 }
 
@@ -187,6 +187,8 @@ sub flush( $self ) {
     local $responses = $self->responses;
     local $bodies = $self->bodies;
     my $dbh = $self->dbh;
+
+    if( ! $self->{created}++ ) {
 
     $dbh->sqlite_create_module(perl => "DBD::SQLite::VirtualTable::PerlData");
     $dbh->do(<<'SQL');
