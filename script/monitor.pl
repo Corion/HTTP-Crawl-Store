@@ -1,5 +1,6 @@
 #!perl -w
 use HTTP::Crawl::Store;
+use HTTP::Crawl::LinkExtractor;
 use Minion;
 use Minion::Backend::SQLite;
 use Mojo::UserAgent;
@@ -18,6 +19,7 @@ push @{app->commands->namespaces}, 'HTTP::Crawl::Command';
 #my $minion = Minion->new(SQLite => 'sqlite:db/crawler.sqlite');
 
 # has 'store', in some "app" class...
+
 my $store = HTTP::Crawl::Store->new(
     dsn => 'dbi:SQLite:dbname=db/crawler.sqlite',
 );
@@ -28,20 +30,41 @@ sub Mojolicious::Lite::store {
 $store->connect();
 
 my $filter = HTTP::Crawl::URLFilter->new(
+    blacklist => [
+        qr/\.svg$/,
+        qr/\.googleanalytics\.$/,
+        qr/\bgzhls\.at\b/,
+        qr!\bgeizhals.de/analytics/!,
 
-# Add tasks
-
-    1;
-}
-
-$store->connect();
+        # Amazon
+        qr!\bwww.amazon.de/gp/sponsored-products/logging/log-action\.html\b!,
+    ],
+);
 
 # Add tasks
 my @responses;
-app->minion->add_task(fetch_url => sub {
-    my ($job, $method, $url, %options) = @_;
+
+sub url_wanted( $url ) {
+    my $action = $filter->get_action( { url => $url });
+    if( $action ne 'continue' ) {
+        warn "$$ Skipping '$url': $action";
+    };
+    return $action
+}
+
+sub fetch_resource($job, $method, $url, %options) {
     my $ua_method = lc $method;
     $ua_method .= '_p';
+
+    my %seen = (
+        $url => 1,
+    );
+
+    my $action = url_wanted( $url );
+    if( $action ne 'continue' ) {
+        return;
+    };
+    my $u = Mojo::URL->new( $url );
 
     my $headers = $options{headers} || {};
 
@@ -51,6 +74,7 @@ app->minion->add_task(fetch_url => sub {
         my ($tx) = @_;
         my $uri = URI->new($url);
         my $res = $tx->result;
+        # This should be HTTP::Crawl::Store->store_mojo_response() ...
         my $data = {
             status  => $res->code,
             method  => $method,
@@ -64,19 +88,44 @@ app->minion->add_task(fetch_url => sub {
             headers => [%{ $res->headers->to_hash }],
             content => $res->body,
         };
-        # We should also store the title (?)
-        (my $title) = ($data->{content} =~ m!<title>(.*?)</title>!i);
-        say "Storing '$title', $data->{status}";
+        if( $res->headers->to_hash->{"Content-Type"} =~ m!^text/html!) {
+            # We should also store the title as metadata(?)
+            (my $title) = ($data->{content} =~ m!<title>(.*?)</title>!i);
+            say "Storing '$title', $data->{status}";
+        } else {
+            say "Storing '$url', $data->{status}";
+        };
         $store->store(
             $data,
         );
+
+        # And now, also fetch the resources?!
+        if( $options{ fetch_resources }) {
+            my $p = HTTP::Crawl::LinkExtractor->new();
+            my $d = $p->parse( $res->body );
+            for my $r ($d->resources) {
+                my $linked = Mojo::URL->new( $r->attr('src'))->to_abs(Mojo::URL->new($uri));
+                my $action = url_wanted( $linked );
+                next if $seen{ $linked }++;
+                if( $action ne 'continue' ) {
+                    warn "Skipping resource '$linked' ($action)";
+                } else {
+                    warn "Enqueuing resource '$linked'";
+                    # Later, also add appropriate headers, like cookies, referer etc.
+                    app->minion->enqueue(fetch_url => [ GET => $linked, fetch_resources => 0 ] => { lock => $linked });
+                };
+            };
+        };
+
         $store->flush();
     })->catch(sub {
         warn "[[$@]]";
         warn shift;
     })->wait;
     push @responses, $response_p;
-});
+};
+
+app->minion->add_task(fetch_url => \&fetch_resource);
 
 get '/url' => sub {
     my( $c ) = @_;

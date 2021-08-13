@@ -55,6 +55,6 @@ for my $task (@$urls) {
     }
 
     if( $fetch ) {
-        $minion->enqueue(fetch_url => [ GET => $t->{url} ]);
+        $minion->enqueue(fetch_url => [ GET => $t->{url}, fetch_resources => 1 ] => { lock => $t->{url} });
     };
 };

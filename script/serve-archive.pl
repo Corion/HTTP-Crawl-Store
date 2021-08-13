@@ -1,5 +1,8 @@
 #!perl -w
+use strict;
+use warnings;
 use HTTP::Crawl::Store;
+use HTTP::Crawl::LinkExtractor;
 use Minion;
 use Minion::Backend::SQLite;
 
@@ -12,6 +15,9 @@ my $store = HTTP::Crawl::Store->new(
     dsn => 'dbi:SQLite:dbname=db/crawler.sqlite',
 );
 
+plugin 'Minion' => { SQLite => 'sqlite:db/crawler.sqlite' };
+plugin 'Minion::Admin';
+
 $store->connect();
 
 # List all URLs
@@ -22,19 +28,30 @@ get '/' => sub ($c) {
     $c->render(template => 'index')
 };
 
+my $p = HTTP::Crawl::LinkExtractor->new();
 get '/archive' => sub ($c) {
     my $url = $c->req->param('url');
 
     my $res = $store->retrieve_url( GET => $url );
+    $c->res->headers->content_type($res->{header_content_type});
 
     # Rewrite URLs to be local, especially image URLs
 
-    $c->stash( content => $res->{content} );
+    if( $res->{header_content_type} eq 'text/html' ) {
+        my $d = $p->parse( $res->{content});
+        for my $l ($d->resources) {
+            warn "Resource: " . Mojo::URL->new( $l->attr('src'))->to_abs(Mojo::URL->new($url));
+        };
 
-    $c->res->headers->content_type($res->{header_content_type});
+        $c->stash( content => $res->{content} );
+        $c->render(template => 'archived')
+    } else {
+        $c->render(data => $res->{content})
+
+    }
+
 
     #$c->content_encoding( $res->{header_content_encoding} );
-    $c->render(template => 'archived')
 };
 
 
