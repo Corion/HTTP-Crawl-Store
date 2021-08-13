@@ -38,7 +38,7 @@ has 'document' => (
 
 sub links($self) {
     # Maybe make things unique? But certainly absolute?!
-    @{ $self->document->find('a')->to_array }
+    @{ $self->document->find('a[href]')->to_array }
 }
 
 sub resources($self) {
