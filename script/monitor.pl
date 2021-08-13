@@ -75,6 +75,13 @@ sub fetch_resource($job, $method, $url, %options) {
         my $uri = URI->new($url);
         my $res = $tx->result;
         # This should be HTTP::Crawl::Store->store_mojo_response() ...
+        my $ct = $res->headers->to_hash->{'Content-Type'};
+        my $decoded_content = $res->body;
+        if( $ct =~ m!^text/html;\s*charset=(\S+)$! ) {
+            my $charset = $1 || 'ISO-8859-1';
+            $decoded_content = decode( $charset, $decoded_content );
+        };
+
         my $data = {
             status  => $res->code,
             method  => $method,
@@ -86,7 +93,7 @@ sub fetch_resource($job, $method, $url, %options) {
             url     => $url,
             message => $res->message,
             headers => [%{ $res->headers->to_hash }],
-            content => $res->body,
+            content => $decoded_content,
         };
         if( $res->headers->to_hash->{"Content-Type"} =~ m!^text/html!) {
             # We should also store the title as metadata(?)
