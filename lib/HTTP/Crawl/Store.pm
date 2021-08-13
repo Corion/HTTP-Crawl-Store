@@ -164,7 +164,7 @@ sub http_response_to_response( $self, $response ) {
 sub store( $self, @responses ) {
     @responses = map {
         my $ref = ref $_;
-        if ( $ref eq 'HTTP::Response' ) {
+        if ( $ref eq 'HTTP::Response' ) { # XXX we should do an ISA check instead
             $_ = $self->http_response_to_response( $_ );
         } else {
             # Hope that it behaves like a dumb hash
