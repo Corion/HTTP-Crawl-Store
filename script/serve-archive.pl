@@ -23,7 +23,9 @@ $store->connect();
 # List all URLs
 get '/' => sub ($c) {
 
-    my $urls = $store->available_urls();
+    my $urls = $store->available_urls(
+        where => "header_content_type like 'text/html%'",
+    );
     $c->stash( urls => $urls );
     $c->render(template => 'index')
 };
