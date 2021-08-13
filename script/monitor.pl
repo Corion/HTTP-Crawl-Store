@@ -9,6 +9,9 @@ use Mojolicious::Lite;
 use feature 'signatures';
 no warnings 'experimental::signatures';
 
+use Encode 'decode';
+use POSIX 'strftime';
+
 plugin 'Minion' => { SQLite => 'sqlite:db/crawler.sqlite' };
 plugin 'Minion::Admin';
 
@@ -31,13 +34,16 @@ $store->connect();
 
 my $filter = HTTP::Crawl::URLFilter->new(
     blacklist => [
-        qr/\.svg$/,
+        #qr/\.svg$/,
         qr/\.googleanalytics\.$/,
-        qr/\bgzhls\.at\b.*(?!\.jpg)....$/,
+        qr/\bgzhls\.at\b.*(?!\.jpg|\.css)....$/,
         qr!\bgeizhals.de/analytics/!,
 
         # Amazon
         qr!\bwww.amazon.de/gp/sponsored-products/logging/log-action\.html\b!,
+
+        # Generic ads
+        qr!\bdoubleclick\b!,
     ],
 );
 
@@ -48,6 +54,22 @@ sub url_wanted( $url ) {
     my $action = $filter->get_action( { url => $url });
     if( $action ne 'continue' ) {
         warn "$$ Skipping '$url': $action";
+    } else {
+        if( $url !~ /\bhtml\b/ ) {
+            my $res = $store->retrieve_url( 'GET' => $url );
+            my $fetch;
+
+            if( $res ) {
+                # We only refetch things that are older than one hour
+                my $next_fetch = time() - 3600;
+                my $next_fetch_ts = strftime '%Y-%m-%d %H:%M:%SZ', gmtime( $next_fetch );
+
+                $fetch = $res->{retrieved} lt $next_fetch_ts;
+            };
+            if( ! $fetch ) {
+                $action = 'fail';
+            };
+        };
     };
     return $action
 }
