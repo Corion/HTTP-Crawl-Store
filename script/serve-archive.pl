@@ -39,7 +39,7 @@ get '/archive' => sub ($c) {
 
     # Rewrite URLs to be local, especially image URLs
 
-    if( $res->{header_content_type} eq 'text/html' ) {
+    if( $res->{header_content_type} =~ m!^text/html\b! ) {
         my $d = $p->parse( $res->{content});
         for my $l ($d->resources) {
             warn "Resource: " . Mojo::URL->new( $l->attr('src'))->to_abs(Mojo::URL->new($url));
@@ -48,8 +48,7 @@ get '/archive' => sub ($c) {
         $c->stash( content => $res->{content} );
         $c->render(template => 'archived')
     } else {
-        $c->render(data => $res->{content})
-
+        $c->render(data => $res->{content});
     }
 
 
@@ -67,7 +66,6 @@ __DATA__
 <ul>
 % for my $url (@$urls) {
 % my $link = url_for('archive')->query( url => $url->{url} )->to_string;
-%= dumper($link);
 <li><a href="<%= $link %>"><%=$url->{url} %></a> - <%= $url->{retrieved} %></li>
 % }
 </ul>
