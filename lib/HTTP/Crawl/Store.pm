@@ -309,6 +309,23 @@ sub retrieve_url($self,$method, $url, %options) {
 SQL
 }
 
+sub available_urls( $self ) {
+    # Maybe we want some limiting here?!
+    $self->dbh->selectall_arrayref(<<'SQL', {Slice => {}})
+        with most_recent as (
+        select
+            method
+          , url
+          , retrieved
+          , rank() over ( partition by method, url order by retrieved desc) as pos
+        from response r
+        )
+        select method, url, retrieved
+        from most_recent where pos = 1
+        order by retrieved desc
+SQL
+}
+
 =head2 C<< $store->purge_responses %options >>
 
     $store->purge_responses( keep_newest => 20, host => 'amazon.de' );
