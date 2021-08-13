@@ -16,6 +16,7 @@ use Digest;
 use Digest::SHA;
 use POSIX 'strftime';
 use DBI ':sql_types';
+use Encode 'decode';
 
 our $VERSION = '0.01';
 
@@ -229,6 +230,7 @@ SQL
       , hashrefs="HTTP::Crawl::Store::bodies"
     );
 SQL
+    };
     $self->dbh->do(<<'SQL');
         insert into response
         (retrieved
@@ -296,10 +298,12 @@ SQL
 
 sub retrieve_http_request($self,$request) {
     $self->retrieve_url( $request->method, $request->url );
+    # do we want to bless things into HTTP::Request/HTTP::Response here?!
 }
 
 sub retrieve_url($self,$method, $url, %options) {
     # Later, add options to retrieve other versions of the page
+    my $res =
     $self->dbh->selectall_arrayref(<<'SQL', {Slice => {}}, $method, $url)->[0];
         select
         *
@@ -309,6 +313,15 @@ sub retrieve_url($self,$method, $url, %options) {
           and url    = ?
         order by retrieved desc limit 1
 SQL
+    ;
+    for ($res) {
+        if( $_->{content} and $_->{header_content_type} and $_->{header_content_type} =~ m!^text/!) {
+            # We store all text as UTF-8
+            $_->{content} = decode('UTF-8', $_->{content});
+
+        }
+    }
+    return $res
 }
 
 sub available_urls( $self ) {
