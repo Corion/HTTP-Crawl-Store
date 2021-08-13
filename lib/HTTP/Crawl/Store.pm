@@ -16,7 +16,7 @@ use Digest;
 use Digest::SHA;
 use POSIX 'strftime';
 use DBI ':sql_types';
-use Encode 'decode';
+use Encode 'decode', 'is_utf8';
 
 our $VERSION = '0.01';
 
@@ -315,8 +315,10 @@ sub retrieve_url($self,$method, $url, %options) {
 SQL
     ;
     for ($res) {
-        if( $_->{content} and $_->{header_content_type} and $_->{header_content_type} =~ m!^text/!) {
+        if( $_->{content} and $_->{header_content_type} and $_->{header_content_type} =~ m!^text/!
+            and ! is_utf8( $_->{content} )) {
             # We store all text as UTF-8
+            warn "Decoding content";
             $_->{content} = decode('UTF-8', $_->{content});
 
         }
