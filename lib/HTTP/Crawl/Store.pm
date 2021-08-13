@@ -318,7 +318,7 @@ SQL
         if( $_->{content} and $_->{header_content_type} and $_->{header_content_type} =~ m!^text/!
             and ! is_utf8( $_->{content} )) {
             # We store all text as UTF-8
-            warn "Decoding content";
+            #warn "Decoding content";
             $_->{content} = decode('UTF-8', $_->{content});
 
         }
