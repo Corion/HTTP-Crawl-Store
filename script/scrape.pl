@@ -86,7 +86,7 @@ if( @ARGV ) {
     @column_names == @ARGV
         or die "Different number of column names and column expressions";
 
-    $args = +{ zip @column_names, @ARGV };
+    $args = +[ zip @column_names, @ARGV ];
 
 } else {
     $args = \@ARGV;
