@@ -39,13 +39,27 @@ get '/archive' => sub ($c) {
     if( $res->{header_content_type} =~ m!^text/html\b! ) {
         my $d = $p->parse( $res->{content});
 
+        # Remove stuff that phones home:
+        for my $t (@{ $d->document->find('link[href]')->to_array }) {
+            if( $t->attr('rel') !~ /^(?:stylesheet)$/ ) {
+                say "Removing $t";
+                $t->remove;
+            };
+        }
+
         # Rewrite URLs to be local, especially image URLs
         for my $l ($d->resources) {
-            my $absolute = Mojo::URL->new( $l->attr('src'))->to_abs(Mojo::URL->new($url));
+            my %attr_map = (
+                link => 'href',
+                img  => 'src',
+            );
+            my $attr = $attr_map{ lc $l->tag }
+                or warn sprintf "Unknown resource type '%s'", $l->tag;
+            my $absolute = Mojo::URL->new( $l->attr( $attr ) )->to_abs(Mojo::URL->new($url));
             my $localized = app->url_for('archive')->query( url => $absolute );
 
-            #warn "Resource: $absolute -> $localized";
-            $l->attr('src', $localized);
+            warn "Resource: $absolute -> $localized";
+            $l->attr($attr, $localized);
         };
 
         #$c->stash( content => $res->{content} );
