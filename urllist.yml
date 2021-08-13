@@ -24,12 +24,12 @@
   scrape:
       - price: "#offer__price-0 > .gh_price"
         title: title
-- url: "https://www.amazon.de/dp/B08BR4CGJ6/ref=cm_sw_em_r_mt_dp_4K28T4BQVVR8JR86ENRJ?_encoding=UTF8&psc=1"
+- url: "https://www.amazon.de/dp/B07S3WMKYT/ref=cm_sw_em_r_mt_dp_EH1BZAM33C01S970ZNXT?_encoding=UTF8&psc=1"
   update: 14400
   scrape:
       - price: "#priceblock_ourprice"
-        title: "//title"
-- url: "https://www.amazon.de/dp/B07S3WMKYT/ref=cm_sw_em_r_mt_dp_EH1BZAM33C01S970ZNXT?_encoding=UTF8&psc=1"
+        title: "//title[0]"
+- url: "https://www.amazon.de/dp/B01M0BA4HQ/ref=cm_sw_em_r_mt_dp_KYA3RYHAPQDH7A5RGD54?_encoding=UTF8&psc=1"
   update: 14400
   scrape:
       - price: "#priceblock_ourprice"
