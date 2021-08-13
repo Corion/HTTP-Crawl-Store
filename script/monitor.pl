@@ -33,7 +33,7 @@ my $filter = HTTP::Crawl::URLFilter->new(
     blacklist => [
         qr/\.svg$/,
         qr/\.googleanalytics\.$/,
-        qr/\bgzhls\.at\b/,
+        qr/\bgzhls\.at\b.*(?!\.jpg)....$/,
         qr!\bgeizhals.de/analytics/!,
 
         # Amazon
