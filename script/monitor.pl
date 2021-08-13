@@ -5,8 +5,14 @@ use Minion::Backend::SQLite;
 use Mojo::UserAgent;
 
 use Mojolicious::Lite;
+use feature 'signatures';
+no warnings 'experimental::signatures';
+
 plugin 'Minion' => { SQLite => 'sqlite:db/crawler.sqlite' };
 plugin 'Minion::Admin';
+
+# Add another namespace to load commands from
+push @{app->commands->namespaces}, 'HTTP::Crawl::Command';
 
 # Connect to backend
 #my $minion = Minion->new(SQLite => 'sqlite:db/crawler.sqlite');
@@ -15,26 +21,15 @@ plugin 'Minion::Admin';
 my $store = HTTP::Crawl::Store->new(
     dsn => 'dbi:SQLite:dbname=db/crawler.sqlite',
 );
+sub Mojolicious::Lite::store {
+    return $store
+}
 
-{
-    package MyApp::Command::create;
-    use Mojo::Base 'Mojolicious::Command';
+$store->connect();
 
-    use Mojo::Util 'getopt';
+my $filter = HTTP::Crawl::URLFilter->new(
 
-    has 'description' => 'Create the HTTP crawl schema';
-    has 'usage' => <<"USAGE";
-    $0 create
-USAGE
-
-    sub run {
-        my ($self, @args) = @_;
-
-        my $app = $self->app;
-        my $store = $app->store;
-        $store->create();
-        exit
-    }
+# Add tasks
 
     1;
 }
