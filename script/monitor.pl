@@ -111,7 +111,13 @@ sub fetch_resource($job, $method, $url, %options) {
             my $p = HTTP::Crawl::LinkExtractor->new();
             my $d = $p->parse( $res->body );
             for my $r ($d->resources) {
-                my $linked = Mojo::URL->new( $r->attr('src'))->to_abs(Mojo::URL->new($uri));
+                my %attr_map = (
+                    link => 'href',
+                    img  => 'src',
+                );
+                my $attr = $attr_map{ lc $r->tag }
+                    or warn sprintf "Unknown resource type '%s'", $r->tag;
+                my $linked = Mojo::URL->new( $r->attr( $attr ) )->to_abs(Mojo::URL->new($uri));
                 my $action = url_wanted( $linked );
                 next if $seen{ $linked }++;
                 if( $action ne 'continue' ) {
