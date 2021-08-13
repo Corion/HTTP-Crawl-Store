@@ -35,20 +35,32 @@ get '/archive' => sub ($c) {
     my $url = $c->req->param('url');
 
     my $res = $store->retrieve_url( GET => $url );
-    $c->res->headers->content_type($res->{header_content_type});
-
-    # Rewrite URLs to be local, especially image URLs
 
     if( $res->{header_content_type} =~ m!^text/html\b! ) {
         my $d = $p->parse( $res->{content});
+
+        # Rewrite URLs to be local, especially image URLs
         for my $l ($d->resources) {
-            warn "Resource: " . Mojo::URL->new( $l->attr('src'))->to_abs(Mojo::URL->new($url));
+            my $absolute = Mojo::URL->new( $l->attr('src'))->to_abs(Mojo::URL->new($url));
+            my $localized = app->url_for('archive')->query( url => $absolute );
+
+            #warn "Resource: $absolute -> $localized";
+            $l->attr('src', $localized);
         };
 
-        $c->stash( content => $res->{content} );
+        #$c->stash( content => $res->{content} );
+        $c->stash( content => $d->document->to_string );
+        # We have our data in UTF-8
+        $c->res->headers->content_type('text/html; charset=utf-8');
         $c->render(template => 'archived')
     } else {
-        $c->render(data => $res->{content});
+        if( $res->{content} ) {
+            #warn "Rendering $res->{header_content_type}";
+            $c->res->headers->content_type($res->{header_content_type});
+            $c->render(data => $res->{content});
+        } else {
+            $c->render(text => 'not found', status => 404);
+        };
     }
 
 
