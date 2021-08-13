@@ -20,7 +20,7 @@ use Scalar::Util 'reftype';
 my $retrieved = time;
 for my $content (qw(abc def def ghi def jkl)) {
     my $ts = strftime '%Y-%m-%d %H:%M:%S', localtime($retrieved++);
-    
+
     $s->store(
         {
             headers => ['X-Test'=>'special','Content-Type'=>'text/html'],
@@ -30,7 +30,7 @@ for my $content (qw(abc def def ghi def jkl)) {
             status => 200,
             message => 'OK',
             (map { $_ => $u->$_ } (qw(host port path query scheme))),
-            body => $content,
+            content => $content,
         },
     );
 };
@@ -83,7 +83,7 @@ my $d = $dbh->selectall_arrayref(<<'SQL',{});
         )
         select host,url, r.response_digest, last_retrieved, pos
         from response r join response_rank rr on (r.response_digest=rr.response_digest)
-        where 
+        where
               host like '%'
           and r.response_digest in (select response_digest from response_rank where pos > 3)
 SQL
