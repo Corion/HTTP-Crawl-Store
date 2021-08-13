@@ -16,7 +16,7 @@ use Digest;
 use Digest::SHA;
 use POSIX 'strftime';
 use DBI ':sql_types';
-use Encode 'decode', 'is_utf8';
+use Encode 'encode', 'decode', 'is_utf8';
 
 our $VERSION = '0.01';
 
@@ -114,14 +114,6 @@ sub _store($self, $res) {
     my $responses = $self->responses;
     my $bodies = $self->bodies;
     for my $response (@$res) {
-        my $digest = $self->digest->clone;
-        # ->decoded_content ?!
-        $digest->add($response->{content})
-            if exists $response->{content};
-        $digest = $digest->digest;
-        $response->{response_digest} = $digest;
-        $response->{retrieved} ||= strftime '%Y-%m-%d %H:%M:%SZ', gmtime;
-
         # Upmunge some of the headers
         for my $h (qw(content_type
                       etag date server content_disposition content_length
@@ -133,6 +125,19 @@ sub _store($self, $res) {
             ($response->{"header_$h"}) = map { my $hn = $response->{headers}->[$_*2]; (defined $hn and $hn =~ /^$hname$/i) ? $response->{headers}->[$_*2+1] : () } 0..(@{ $response->{headers} }/2);
         };
         $response->{headers_all} = encode_json($response->{headers});
+
+        my $digest = $self->digest->clone;
+        my $bytes;
+        if( $response->{header_content_type} =~ m!^text/html\b! ) {
+            $bytes = encode('UTF-8', $response->{content});
+        } else {
+            $bytes = $response->{content};
+        };
+        $digest->add($bytes)
+            if exists $response->{content};
+        $digest = $digest->digest;
+        $response->{response_digest} = $digest;
+        $response->{retrieved} ||= strftime '%Y-%m-%d %H:%M:%SZ', gmtime;
 
         push @$responses, $response;
         # gunzip stuff/remote TE
