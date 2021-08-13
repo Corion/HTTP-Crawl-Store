@@ -326,9 +326,10 @@ SQL
     return $res
 }
 
-sub available_urls( $self ) {
+sub available_urls( $self, %options ) {
     # Maybe we want some limiting here?!
-    $self->dbh->selectall_arrayref(<<'SQL', {Slice => {}})
+    my $where = $options{ where } // '1 = 1';
+    $self->dbh->selectall_arrayref(<<"SQL", {Slice => {}})
         with most_recent as (
         select
             method
@@ -336,6 +337,7 @@ sub available_urls( $self ) {
           , retrieved
           , rank() over ( partition by method, url order by retrieved desc) as pos
         from response r
+       where $where
         )
         select method, url, retrieved
         from most_recent where pos = 1
