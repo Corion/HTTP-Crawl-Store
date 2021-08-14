@@ -1,0 +1,81 @@
+{
+   "abstract" : "store HTTP crawl results for later consumption",
+   "author" : [
+      "Max Maischein <corion@cpan.org>"
+   ],
+   "dynamic_config" : 0,
+   "generated_by" : "ExtUtils::MakeMaker version 7.34, CPAN::Meta::Converter version 2.150010",
+   "license" : [
+      "perl_5"
+   ],
+   "meta-spec" : {
+      "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+      "version" : 2
+   },
+   "name" : "HTTP-Crawl-Store",
+   "no_index" : {
+      "directory" : [
+         "t",
+         "inc"
+      ]
+   },
+   "prereqs" : {
+      "build" : {
+         "requires" : {
+            "ExtUtils::MakeMaker" : "0",
+            "File::ShareDir::Install" : "0"
+         }
+      },
+      "configure" : {
+         "requires" : {
+            "ExtUtils::MakeMaker" : "0"
+         }
+      },
+      "runtime" : {
+         "requires" : {
+            "App::scrape" : "0",
+            "Carp" : "0",
+            "DBD::SQLite" : "1.62",
+            "DBIx::RunSQL" : "0",
+            "Digest" : "0",
+            "Digest::SHA" : "0",
+            "Encode" : "0",
+            "File::ShareDir" : "0",
+            "File::ShareDir::Install" : "0",
+            "Filter::signatures" : "0.09",
+            "HTTP::Headers" : "0",
+            "HTTP::Request" : "0",
+            "HTTP::Response" : "0",
+            "JSON::XS" : "0",
+            "Minion" : "0",
+            "Minion::Backend::SQLite" : "0",
+            "Mojolicious" : "0",
+            "Moo" : "2",
+            "POSIX" : "0",
+            "Path::Class" : "0",
+            "Scalar::Util" : "0",
+            "Time::Local" : "0",
+            "URI" : "0",
+            "YAML::Tiny" : "0",
+            "charnames" : "0",
+            "perl" : "5.008"
+         }
+      },
+      "test" : {
+         "requires" : {
+            "Test::More" : "0"
+         }
+      }
+   },
+   "release_status" : "stable",
+   "resources" : {
+      "repository" : {
+         "type" : "git",
+         "url" : "git://github.com/Corion/HTTP-Crawl-Store.git",
+         "web" : "https://github.com/Corion/HTTP-Crawl-Store"
+      }
+   },
+   "version" : "0.01",
+   "x_serialization_backend" : "JSON::PP version 4.04",
+   "x_static_install" : 1
+}

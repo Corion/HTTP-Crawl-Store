@@ -51,21 +51,34 @@ my %module = (
 
     PREREQ_PM => {
         'Filter::signatures' => '0.09',
+        'charnames'          => 0,
         'Carp'               => 0,
         'Moo'                => 2, # for some hashes-as-objects
 
         'JSON::XS'           => 0,
         'DBIx::RunSQL'       => 0,
         'File::ShareDir'     => 0,
+        'File::ShareDir::Install'     => 0,
         'Path::Class'        => 0,
         'Digest'             => 0,
         'Digest::SHA'        => 0,
+        'Encode'             => 0,
         'POSIX'              => 0,
-        
+        'Path::Class'        => 0,
+        'Scalar::Util'       => 0,
+        'Time::Local'        => 0,
+        'YAML::Tiny'         => 0,
+
         'HTTP::Response'     => 0,
+        'HTTP::Request'      => 0,
         'HTTP::Headers'      => 0,
         'DBD::SQLite'        => '1.62', # we want CTEs and Window functions
         'URI'                => 0,
+
+        'App::scrape'        => 0,
+        'Mojolicious'        => 0,
+        'Minion'             => 0,
+        'Minion::Backend::SQLite' => 0,
     },
     TEST_REQUIRES => {
         'Test::More'   => 0,

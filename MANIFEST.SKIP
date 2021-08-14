@@ -24,3 +24,4 @@ Makefile$
 ^HTTP-Crawl-Store
 ^frame-\d+.png
 ^demo/
+^db/
